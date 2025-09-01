@@ -180,7 +180,6 @@ Comandos:
   done "tarefa"             - Concluir tarefa
   undone "tarefa"           - Desmarcar tarefa
   del "tarefa"              - Excluir tarefa
-  cd "tarefa"               - Entrar na tarefa para histórico
   hist "tarefa"             - Mostrar histórico
   edit hist "tarefa"        - Editar nota do histórico
   addhist 'tarefa' note 'nota' - Adicionar nota diretamente
@@ -229,9 +228,6 @@ def terminal():
         elif cmd_lower.startswith("del "):
             nome = comando[4:].strip('"\'')
             excluir_tarefa(nome)
-        elif cmd_lower.startswith("cd "):
-            nome = comando[3:].strip('"\'')
-            entrar_tarefa(nome)
         elif cmd_lower.startswith("hist "):
             nome = comando[5:].strip('"\'')
             mostrar_historico(nome)
