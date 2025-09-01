@@ -15,5 +15,10 @@ Para poder listar todas as tarefas basta digitar o comando "dir" assim como no w
 
 <img width="493" height="163" alt="image" src="https://github.com/user-attachments/assets/7b552c4d-ee0f-4d61-bc4c-b5a0d70371a2" />
 
+tambem é possivel fazer backup da sua lista de tarefas, inportando e exportando arquivos json 
+
+<img width="897" height="746" alt="image" src="https://github.com/user-attachments/assets/d5ae2acc-ac4c-49f9-b21f-ef82b2a1abae" />
+
+
 aqui foram mostrados alguns exemplos do que esse básico sistema pode fazer, o intuito dele é ser algo simples mas muito prático e útil para o dia a dia.
 podendo ainda inserir histórico sobre o andamento da tarefa, deletar ou editar uma tarefa ou histórico.
