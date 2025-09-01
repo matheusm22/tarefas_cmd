@@ -183,7 +183,7 @@ Comandos:
   hist "tarefa"             - Mostrar histórico
   edit hist "tarefa"        - Editar nota do histórico
   addhist 'tarefa' note 'nota' - Adicionar nota diretamente
-  clear                     - Limpar tela
+  clear ou cls              - Limpar tela
   help                      - Mostrar ajuda
   exit                      - Sair
 """)
@@ -251,6 +251,8 @@ def terminal():
             except Exception as e:
                 print(Fore.RED + "Erro ao adicionar histórico:", e)
         elif cmd_lower == "clear":
+            os.system("cls" if platform.system() == "Windows" else "clear")
+        elif cmd_lower == "cls":
             os.system("cls" if platform.system() == "Windows" else "clear")
         elif cmd_lower == "help":
             mostrar_ajuda()
