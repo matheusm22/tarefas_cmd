@@ -1,6 +1,7 @@
 import json
 import os
 import platform
+from datetime import datetime
 
 try:
     from colorama import init, Fore, Style
@@ -10,7 +11,6 @@ except ImportError:
     print("pip install colorama")
     exit()
 
-# Importar prompt_toolkit para autocomplete
 try:
     from prompt_toolkit import PromptSession
     from prompt_toolkit.completion import WordCompleter
@@ -20,7 +20,45 @@ except ImportError:
     exit()
 
 ARQUIVO_TAREFAS = "tarefas.json"
+PASTA_BACKUP = "backups"
 tarefas = []
+
+COMANDOS = [
+    "dir", "dir done", "dir pending", "add", "done", "undone", "del",
+    "hist", "edit hist", "addhist", "backup export", "backup import", 
+    "clear", "cls", "help", "exit"
+]
+
+# ---------- Funções de backup ----------
+def exportar_backup():
+    if not os.path.exists(PASTA_BACKUP):
+        os.makedirs(PASTA_BACKUP)
+    nome_arquivo = f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    caminho = os.path.join(PASTA_BACKUP, nome_arquivo)
+    with open(caminho, "w", encoding="utf-8") as f:
+        json.dump(tarefas, f, indent=4, ensure_ascii=False)
+    print(Fore.GREEN + f"Backup exportado: {caminho}")
+
+def importar_backup(nome_arquivo):
+    global tarefas
+    caminho = os.path.join(PASTA_BACKUP, nome_arquivo)
+    if os.path.exists(caminho):
+        with open(caminho, "r", encoding="utf-8") as f:
+            tarefas = json.load(f)
+        salvar_tarefas_local()
+        print(Fore.GREEN + f"Backup importado: {caminho}")
+    else:
+        print(Fore.RED + f"Arquivo de backup não encontrado: {caminho}")
+
+def importar_ultimo_backup():
+    """Importa automaticamente o backup mais recente, se existir"""
+    if not os.path.exists(PASTA_BACKUP):
+        return
+    backups = [f for f in os.listdir(PASTA_BACKUP) if f.endswith(".json")]
+    if not backups:
+        return
+    backups.sort(reverse=True)  # O mais recente primeiro
+    importar_backup(backups[0])
 
 # ---------- Funções básicas ----------
 def carregar_tarefas():
@@ -31,7 +69,8 @@ def carregar_tarefas():
     else:
         tarefas = []
 
-def salvar_tarefas(_tarefas=None):
+def salvar_tarefas_local(_tarefas=None):
+    """Salva o arquivo de tarefas sem gerar backup automático"""
     global tarefas
     if _tarefas is not None:
         tarefas = _tarefas
@@ -63,7 +102,7 @@ def adicionar_tarefa(titulo):
         print(Fore.RED + f"A tarefa '{titulo}' já existe.")
         return
     tarefas.append({"titulo": titulo, "concluida": False, "historico": []})
-    salvar_tarefas()
+    salvar_tarefas_local()
     print(Fore.GREEN + f"Tarefa '{titulo}' adicionada!")
 
 # ---------- Concluir tarefa ----------
@@ -74,7 +113,7 @@ def concluir_tarefa(nome):
             print(Fore.YELLOW + f"Tarefa '{nome}' já concluída.")
         else:
             tarefa["concluida"] = True
-            salvar_tarefas()
+            salvar_tarefas_local()
             print(Fore.GREEN + f"Tarefa '{nome}' marcada como concluída!")
     else:
         print(Fore.RED + f"Tarefa '{nome}' não encontrada.")
@@ -87,7 +126,7 @@ def desmarcar_tarefa(nome):
             print(Fore.YELLOW + f"Tarefa '{nome}' já pendente.")
         else:
             tarefa["concluida"] = False
-            salvar_tarefas()
+            salvar_tarefas_local()
             print(Fore.GREEN + f"Tarefa '{nome}' marcada como pendente!")
     else:
         print(Fore.RED + f"Tarefa '{nome}' não encontrada.")
@@ -98,7 +137,7 @@ def excluir_tarefa(nome):
     tarefa = next((t for t in tarefas if t["titulo"].lower() == nome.lower()), None)
     if tarefa:
         tarefas.remove(tarefa)
-        salvar_tarefas()
+        salvar_tarefas_local()
         print(Fore.RED + f"Tarefa '{nome}' excluída!")
     else:
         print(Fore.RED + f"Tarefa '{nome}' não encontrada.")
@@ -120,55 +159,10 @@ def add_historico(nome, nota):
     tarefa = next((t for t in tarefas if t["titulo"].lower() == nome.lower()), None)
     if tarefa:
         tarefa["historico"].append(nota)
-        salvar_tarefas()
+        salvar_tarefas_local()
         print(Fore.GREEN + f"Nota adicionada à tarefa '{nome}'.")
     else:
         print(Fore.RED + f"Tarefa '{nome}' não encontrada.")
-
-def editar_historico(nome):
-    tarefa = next((t for t in tarefas if t["titulo"].lower() == nome.lower()), None)
-    if not tarefa:
-        print(Fore.RED + f"Tarefa '{nome}' não encontrada.")
-        return
-    if not tarefa["historico"]:
-        print("Sem notas para editar.")
-        return
-    mostrar_historico(nome)
-    try:
-        n = int(input("Número da nota que deseja editar: "))
-        if 1 <= n <= len(tarefa["historico"]):
-            nova = input("Nova nota: ").strip()
-            if nova:
-                tarefa["historico"][n-1] = nova
-                salvar_tarefas()
-                print(Fore.GREEN + "Nota editada com sucesso!")
-            else:
-                print(Fore.RED + "Nota vazia não editada.")
-        else:
-            print(Fore.RED + "Número inválido.")
-    except ValueError:
-        print(Fore.RED + "Entrada inválida.")
-
-# ---------- Entrar na tarefa via cd ----------
-def entrar_tarefa(nome):
-    tarefa = next((t for t in tarefas if t["titulo"].lower() == nome.lower()), None)
-    if not tarefa:
-        print(Fore.RED + f"Tarefa '{nome}' não encontrada.")
-        return
-    print(Fore.CYAN + f"\nEntrando na tarefa: {tarefa['titulo']}")
-    while True:
-        print("\nComandos dentro da tarefa: hist, addhist, back")
-        cmd = input(f"{tarefa['titulo']}> ").strip().lower()
-        if cmd == "hist":
-            mostrar_historico(tarefa["titulo"])
-        elif cmd == "addhist":
-            nota = input("Digite a nota: ").strip()
-            if nota:
-                add_historico(tarefa["titulo"], nota)
-        elif cmd == "back":
-            break
-        else:
-            print(Fore.RED + "Comando não reconhecido. Use hist, addhist ou back.")
 
 # ---------- Mostrar ajuda ----------
 def mostrar_ajuda():
@@ -183,22 +177,28 @@ Comandos:
   hist "tarefa"             - Mostrar histórico
   edit hist "tarefa"        - Editar nota do histórico
   addhist 'tarefa' note 'nota' - Adicionar nota diretamente
+  backup export             - Exportar backup manualmente
+  backup import NOME_ARQUIVO - Importar backup específico da pasta backups
   clear ou cls              - Limpar tela
   help                      - Mostrar ajuda
-  exit                      - Sair
+  exit                      - Sair (faz backup automaticamente ao sair)
 """)
 
 # ---------- Loop principal ----------
 def terminal():
     carregar_tarefas()
+    importar_ultimo_backup()  # Importa automaticamente o último backup
+
     print(Fore.CYAN + "Sistema de Lista de Tarefas")
     print("Digite 'help' para ver os comandos.\n")
 
     session = PromptSession()
-
+    
     while True:
-        tarefas_nomes = [t["titulo"] for t in tarefas]
-        completer = WordCompleter(tarefas_nomes, ignore_case=True)
+        # Comandos + nomes de tarefas para autocomplete
+        nomes_e_comandos = COMANDOS + [t["titulo"] for t in tarefas]
+        completer = WordCompleter(nomes_e_comandos, ignore_case=True)
+        
         try:
             comando = session.prompt("> ", completer=completer).strip()
         except KeyboardInterrupt:
@@ -207,8 +207,8 @@ def terminal():
             break
         if not comando:
             continue
+        
         cmd_lower = comando.lower()
-
         if cmd_lower.startswith("dir"):
             filtro = None
             if "done" in cmd_lower:
@@ -231,33 +231,18 @@ def terminal():
         elif cmd_lower.startswith("hist "):
             nome = comando[5:].strip('"\'')
             mostrar_historico(nome)
-        elif cmd_lower.startswith("edit hist "):
-            nome = comando[10:].strip('"\'')
-            editar_historico(nome)
-        elif cmd_lower.startswith("addhist "):
-            # Comando esperado: addhist 'tarefa' note 'nota a ser escrita'
-            try:
-                cmd_body = comando[8:].strip()
-                if " note " in cmd_body.lower():
-                    partes = cmd_body.split(" note ", 1)
-                    tarefa_nome = partes[0].strip().strip("'\"")
-                    nota = partes[1].strip().strip("'\"")
-                    if tarefa_nome and nota:
-                        add_historico(tarefa_nome, nota)
-                    else:
-                        print(Fore.RED + "Uso correto: addhist 'tarefa' note 'nota a ser escrita'")
-                else:
-                    print(Fore.RED + "Uso correto: addhist 'tarefa' note 'nota a ser escrita'")
-            except Exception as e:
-                print(Fore.RED + "Erro ao adicionar histórico:", e)
-        elif cmd_lower == "clear":
-            os.system("cls" if platform.system() == "Windows" else "clear")
-        elif cmd_lower == "cls":
+        elif cmd_lower.startswith("backup export"):
+            exportar_backup()
+        elif cmd_lower.startswith("backup import "):
+            nome_arquivo = comando[len("backup import "):].strip('"\'')
+            importar_backup(nome_arquivo)
+        elif cmd_lower == "clear" or cmd_lower == "cls":
             os.system("cls" if platform.system() == "Windows" else "clear")
         elif cmd_lower == "help":
             mostrar_ajuda()
         elif cmd_lower == "exit":
-            print(Fore.CYAN + "Saindo...")
+            print(Fore.CYAN + "Saindo... Fazendo backup automático antes de sair.")
+            exportar_backup()  # Backup automático ao fechar
             break
         else:
             print(Fore.RED + "Comando não reconhecido. Digite 'help' para ajuda.\n")
