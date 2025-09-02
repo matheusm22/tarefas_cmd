@@ -24,5 +24,9 @@ através do comando busca é possivel encontrar tarefas de forma resolutiva
 
 <img width="473" height="156" alt="image" src="https://github.com/user-attachments/assets/72a44faa-1fff-4813-93ea-08daf179da6a" />
 
+Caso seja necessario, você poderá utilizar atalhos de teclado para te auxiliar durante o uso do sistema
+<img width="682" height="317" alt="image" src="https://github.com/user-attachments/assets/467cfcfc-e1d0-4dbd-9ef0-dadb735e6cb6" />
+
+
 aqui foram mostrados alguns exemplos do que esse básico sistema pode fazer, o intuito dele é ser algo simples mas muito prático e útil para o dia a dia.
 podendo ainda inserir histórico sobre o andamento da tarefa, deletar ou editar uma tarefa ou histórico.
