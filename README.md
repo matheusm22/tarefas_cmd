@@ -1,11 +1,12 @@
 # tarefas_cmd
 Um sistema de tarefas via cmd que pode te auxiliar no dia a dia 
 
-<img width="1190" height="296" alt="image" src="https://github.com/user-attachments/assets/e698a87f-e08a-4c82-ad43-21d6beca0c40" />
+<img width="528" height="241" alt="image" src="https://github.com/user-attachments/assets/b45fcc01-8d17-40ce-bd2d-e0417cd05fea" />
+
 
 digitando "help" podemos verificar os comandos a serem utilizados
 
-<img width="1119" height="631" alt="image" src="https://github.com/user-attachments/assets/6f76e276-3a51-49c8-bfc0-484e8001eb5f" />
+<img width="858" height="754" alt="image" src="https://github.com/user-attachments/assets/8c6174c8-e527-41ea-90c2-21997611e3c2" />
 
 Caso queria adicionar uma nova tarefa basta inserir o comando "add (nome dado as tarefas sem as aspas)" por exemplo:
 
@@ -19,6 +20,9 @@ tambem é possivel fazer backup da sua lista de tarefas, inportando e exportando
 
 <img width="897" height="746" alt="image" src="https://github.com/user-attachments/assets/d5ae2acc-ac4c-49f9-b21f-ef82b2a1abae" />
 
+através do comando busca é possivel encontrar tarefas de forma resolutiva
+
+<img width="473" height="156" alt="image" src="https://github.com/user-attachments/assets/72a44faa-1fff-4813-93ea-08daf179da6a" />
 
 aqui foram mostrados alguns exemplos do que esse básico sistema pode fazer, o intuito dele é ser algo simples mas muito prático e útil para o dia a dia.
 podendo ainda inserir histórico sobre o andamento da tarefa, deletar ou editar uma tarefa ou histórico.
