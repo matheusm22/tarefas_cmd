@@ -80,7 +80,7 @@ def adicionar_tarefa(titulo):
     tarefas.append({"titulo": titulo, "concluida": False, "historico": []})
     print(Fore.GREEN + f"Tarefa '{titulo}' adicionada!")
 
-# ---------- Concluir tarefa ----------
+# ---------- Concluir/Desmarcar/Excluir ----------
 def concluir_tarefa(nome):
     tarefa = next((t for t in tarefas if t["titulo"].lower() == nome.lower()), None)
     if tarefa:
@@ -92,7 +92,6 @@ def concluir_tarefa(nome):
     else:
         print(Fore.RED + f"Tarefa '{nome}' não encontrada.")
 
-# ---------- Desmarcar tarefa ----------
 def desmarcar_tarefa(nome):
     tarefa = next((t for t in tarefas if t["titulo"].lower() == nome.lower()), None)
     if tarefa:
@@ -104,7 +103,6 @@ def desmarcar_tarefa(nome):
     else:
         print(Fore.RED + f"Tarefa '{nome}' não encontrada.")
 
-# ---------- Excluir tarefa ----------
 def excluir_tarefa(nome):
     tarefa = next((t for t in tarefas if t["titulo"].lower() == nome.lower()), None)
     if tarefa:
@@ -201,26 +199,26 @@ Comandos:
   exit                      - Sair
 
 Atalhos de teclado:
-  Ctrl + A   - Adicionar tarefa
-  Ctrl + D   - Excluir tarefa
-  Ctrl + E   - Editar nota do histórico
-  Ctrl + F   - Pesquisar palavra-chave
-  Ctrl + L   - Limpar tela
-  Ctrl + B   - Exportar backup
-  Ctrl + I   - Importar backup
-  Ctrl + Q   - Sair com backup automático e salvar
+  Ctrl+D  - Inicia comando 'del '
+  Ctrl+E  - Inicia comando 'edit hist '
+  Ctrl+A  - Inicia comando 'add '
+  Ctrl+F  - Inicia comando 'busca '
+  Ctrl+L  - Limpa a tela (cls)
+  Ctrl+B  - Inicia comando 'backup export'
+  Ctrl+I  - Inicia comando 'backup import '
+  Ctrl+Q  - Salva e sai com backup automático
 """)
 
-
-# ---------- Terminal ----------
+# ---------- Loop principal ----------
 def terminal():
     carregar_tarefas()
     print(Fore.CYAN + "Sistema de Lista de Tarefas")
     print("Digite 'help' para ver os comandos.\n")
 
     comandos = [
-        'dir', 'dir done', 'dir pending', 'add', 'done', 'undone',
-        'del', 'hist', 'edit hist', 'addhist', 'backup export', 'backup import',
+        'dir', 'dir done', 'dir pending',
+        'add', 'done', 'undone', 'del', 'hist', 'edit hist',
+        'addhist', 'backup export', 'backup import',
         'busca', 'clear', 'cls', 'help', 'exit'
     ]
 
@@ -237,11 +235,11 @@ def terminal():
         event.app.current_buffer.insert_text('edit hist ')
 
     @bindings.add('c-a')
-    def adicionar_tecla(event):
+    def add_tecla(event):
         event.app.current_buffer.insert_text('add ')
 
     @bindings.add('c-f')
-    def pesquisar_tecla(event):
+    def busca_tecla(event):
         event.app.current_buffer.insert_text('busca ')
 
     @bindings.add('c-l')
@@ -258,27 +256,46 @@ def terminal():
 
     @bindings.add('c-q')
     def sair_tecla(event):
-        print(Fore.CYAN + "\nSaindo com backup automático...")
+        print("\nSaindo com backup automático...")
         salvar_tarefas()
         exportar_backup()
-        event.app.exit(result=None)
+        event.app.exit()
+
+    # ---------- Tab autocomplete ----------
+    @bindings.add('tab')
+    def completar_tecla(event):
+        buffer = event.app.current_buffer
+        if buffer.complete_state:
+            buffer.complete_next()
+        else:
+            buffer.start_completion(select_first=False)
 
     while True:
         tarefas_nomes = [t["titulo"] for t in tarefas]
-        completer = WordCompleter(comandos + tarefas_nomes, ignore_case=True)
+        todas_opcoes = comandos + tarefas_nomes
+        completer = WordCompleter(
+            todas_opcoes,
+            ignore_case=True,
+            match_middle=True  # <-- completa no meio do texto também
+        )
+
         try:
-            comando = session.prompt("> ", completer=completer, key_bindings=bindings)
+            comando = session.prompt("> ", completer=completer,
+                                     complete_while_typing=True,
+                                     key_bindings=bindings)
             if comando is None:
                 break
             comando = comando.strip()
-        except (KeyboardInterrupt, EOFError):
+        except KeyboardInterrupt:
+            continue
+        except EOFError:
             break
 
         if not comando:
             continue
         cmd_lower = comando.lower()
 
-        # ---------- Comandos ----------
+        # ---------- Processamento ----------
         if cmd_lower.startswith("dir"):
             filtro = None
             if "done" in cmd_lower:
